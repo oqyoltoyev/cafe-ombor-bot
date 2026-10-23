@@ -6,6 +6,7 @@ function App() {
   const [settings, setSettings] = useState({})
   const [loading, setLoading] = useState(true)
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [orderDetails, setOrderDetails] = useState(null)
 
   useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -39,6 +40,16 @@ function App() {
       console.error(e)
     }
     setLoading(false)
+  }
+
+  const openOrder = async (o) => {
+    setSelectedOrder(o)
+    try {
+      const d = await call('getOrderDetails', { orderId: o.id })
+      setOrderDetails(d)
+    } catch (e) {
+      setOrderDetails(null)
+    }
   }
 
   const approve = async (id) => {
@@ -90,7 +101,7 @@ function App() {
               <div style={{ padding: 24, textAlign: 'center', color: '#8e8e93' }}>Hozircha yo\u2018q</div>
             ) : (
               orders.map(o => (
-                <div key={o.id} className="list-item" onClick={() => setSelectedOrder(o)}>
+                <div key={o.id} className="list-item" onClick={() => openOrder(o)}>
                   <div>
                     <div style={{ fontWeight: 600 }}>{o.date}</div>
                     <div style={{ fontSize: 13, color: '#8e8e93' }}>#{o.id} \u2022 {o.itemCount || 0} ta</div>
@@ -107,6 +118,16 @@ function App() {
               <div style={{ padding: 16 }}>
                 <div>Sana: {selectedOrder.date}</div>
                 <div>Status: {selectedOrder.status}</div>
+                {orderDetails?.items && (
+                  <div style={{ marginTop: 12, fontSize: 14 }}>
+                    {orderDetails.items.map(it => (
+                      <div key={it.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+                        <span>{it.name}</span>
+                        <span>{it.requestedQty} / {it.receivedQty || 0} {it.unit}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div style={{ marginTop: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {selectedOrder.status === 'draft' && (
                     <button className="btn" style={{ width: 'auto', margin: 0 }} onClick={() => approve(selectedOrder.id)}>
@@ -118,7 +139,7 @@ function App() {
                       Kamchilikni yuborish
                     </button>
                   )}
-                  <button className="btn btn-secondary" style={{ width: 'auto', margin: 0 }} onClick={() => setSelectedOrder(null)}>
+                  <button className="btn btn-secondary" style={{ width: 'auto', margin: 0 }} onClick={() => { setSelectedOrder(null); setOrderDetails(null); }}>
                     Yopish
                   </button>
                 </div>
@@ -136,7 +157,7 @@ function App() {
           <SettingRow label="Bo\u2018lim guruhlari ID" value={settings.department_groups || ''} onSave={v => saveSetting('department_groups', v)} />
           <SettingRow label="Filial nomi" value={settings.branch_name || ''} onSave={v => saveSetting('branch_name', v)} />
           <div style={{ padding: 16, fontSize: 13, color: '#8e8e93' }}>
-            Birinchi marta: terminalda `tgcloud/lib/seed.js` ichidagi default qiymatlarni o\u2018zgartiring yoki shu yerdan kiriting.
+            Birinchi admin bo\u2018lish uchun botga /start yozing. Keyin bu yerdan ombor guruh ID va boshqa sozlamalarni kiriting.
           </div>
         </div>
       )}
