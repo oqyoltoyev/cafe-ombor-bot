@@ -3,8 +3,8 @@ import { eq, and, desc } from 'sdk/db';
 import { orders, orderItems, products, messages } from '../schema.js';
 import { parseOrderText } from '../lib/parser.js';
 import { seedProductsIfEmpty } from '../lib/products.js';
-import { seedDefaultSettings } from '../lib/seed.js';
-import { isAdmin, getWarehouseGroupId, getDepartmentGroups } from '../lib/settings.js';
+import { seedDefaultSettings, makeFirstAdmin } from '../lib/seed.js';
+import { isAdmin, getDepartmentGroups, getSetting } from '../lib/settings.js';
 
 export default async function (message) {
   await seedProductsIfEmpty();
@@ -14,29 +14,40 @@ export default async function (message) {
   const chatId = message.chat.id;
   const userId = message.from?.id;
 
-  if (!text) return;
+  if (!text || !userId) return;
 
-  // Log message
-  await db.insert(messages).values({
-    chatId,
-    userId,
-    text,
-  }).run();
+  await db.insert(messages).values({ chatId, userId, text }).run();
 
-  // Admin commands
+  // Birinchi marta: /start yoki /setup qilgan odam admin bo‘ladi
+  const setupDone = await getSetting('setup_done');
+  if (setupDone !== 'true' && (text === '/start' || text === '/setup' || text === '/admin')) {
+    const became = await makeFirstAdmin(userId);
+    if (became) {
+      await api.sendMessage({
+        chat_id: chatId,
+        text: `\u2705 Siz birinchi admin bo\u2018ldingiz!\n\nEndi Mini App orqali ombor guruh ID va boshqa sozlamalarni kiriting.`,
+        reply_markup: {
+          inline_keyboard: [[
+            { text: '\ud83d\udcf1 Admin Panelni ochish', web_app: { url: process.env.MINI_APP_URL || 'https://app.tgcloud.ai' } }
+          ]]
+        }
+      });
+      return;
+    }
+  }
+
   if (await isAdmin(userId)) {
     if (text === '/start' || text === '/help' || text === '/admin') {
       await api.sendMessage({
         chat_id: chatId,
-        text: `\ud83d\udce6 Ombor Bot (ESKI SHAHAR)\n\n` +
-              `Buyruqlar:\n` +
+        text: `\ud83d\udce6 Ombor Bot\n\n` +
               `/yangi \u2014 yangi kunlik buyurtma\n` +
               `/holat \u2014 joriy draft\n` +
-              `/mini \u2014 Mini App ochish\n\n` +
-              `Sozlamalar Mini App orqali.`,
+              `/mini \u2014 Admin panel\n\n` +
+              `Barcha sozlamalar Mini App da.`,
         reply_markup: {
           inline_keyboard: [[
-            { text: '\ud83d\udcf1 Admin Panel', web_app: { url: 'https://app.tgcloud.ai' } }
+            { text: '\ud83d\udcf1 Admin Panel', web_app: { url: process.env.MINI_APP_URL || 'https://app.tgcloud.ai' } }
           ]]
         }
       });
@@ -57,26 +68,21 @@ export default async function (message) {
         return;
       }
       const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id)).all();
-      await api.sendMessage({
-        chat_id: chatId,
-        text: `Draft #${order.id} (${order.date})\n${items.length} ta mahsulot.`
-      });
+      await api.sendMessage({ chat_id: chatId, text: `Draft #${order.id} (${order.date})\n${items.length} ta mahsulot.` });
       return;
     }
   }
 
-  // Group message parsing (department groups)
+  // Guruhlardan buyurtma / qabul
   const deptGroups = await getDepartmentGroups();
-  const isDeptGroup = deptGroups.length === 0 || deptGroups.includes(chatId);
+  const isDeptGroup = deptGroups.length === 0 || deptGroups.includes(Number(chatId));
 
   if ((message.chat.type === 'group' || message.chat.type === 'supergroup') && isDeptGroup) {
-    // Reception format: "keldi: kimchi 2, sosiska 4" or "qabul: ..."
     if (/^(keldi|qabul|received)[:\s]/i.test(text)) {
       await handleReception(text, chatId);
       return;
     }
 
-    // Normal order parse
     const parsed = await parseOrderText(text);
     if (parsed.length === 0) return;
 
@@ -159,7 +165,7 @@ async function handleReception(text, chatId) {
   if (updated > 0) {
     await api.sendMessage({
       chat_id: chatId,
-      text: `\u2705 ${updated} ta mahsulot qabul qilindi. Kamchiliklarni hisoblash uchun Mini App dan foydalaning.`
+      text: `\u2705 ${updated} ta mahsulot qabul qilindi. Kamchilik uchun Mini App dan foydalaning.`
     });
   }
 }
