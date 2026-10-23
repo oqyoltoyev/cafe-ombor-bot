@@ -1,64 +1,49 @@
-# Cafe Ombor Bot — Production Beta
+# Cafe Ombor Bot — Yakuniy Production
 
-Telegram Serverless + React Mini App (iOS uslubi) asosidagi to‘liq ombor buyurtma tizimi.
+Telegram Serverless + React Mini App. **Hech narsa terminalda o‘zgartirish shart emas.**
 
-## Asosiy imkoniyatlar
+## Birinchi ishga tushirish (3 qadam)
 
-- Bo‘lim guruhlarida oddiy matn yozilsa bot mahsulotni aniqlaydi va draft buyurtmaga qo‘shadi
-- Admin Mini App orqali buyurtmani ko‘rib, ombor guruhiga yuboradi
-- Ishchilar “keldi: kimchi 2, sosiska 4” deb yozsa qabul qilinadi
-- Faqat kamchiliklar ombor guruhiga yuboriladi
-- Barcha sozlamalar (admin ID, guruh ID lar) Mini App dan o‘zgartiriladi
-- Excel dagi 35 ta mahsulot katalogi avtomatik
-
-## Birinchi marta ishga tushirish (juda oson)
-
-1. **Bot yarating**  
-   @BotFather → `/newbot` → Serverless ni yoqing → CLI Access token oling.
-
-2. **Loyihani oling**
+1. @BotFather da bot yarating → Serverless ni yoqing → CLI token oling.
+2. Terminalda:
    ```bash
    git clone https://github.com/oqyoltoyev/cafe-ombor-bot.git
    cd cafe-ombor-bot
    npm install
-   ```
-
-3. **Birinchi sozlamalar** (terminalda)  
-   `tgcloud/lib/seed.js` faylini oching va quyidagilarni o‘zingizniki bilan almashtiring:
-   ```js
-   await setSetting('admin_ids', '123456789');           // o‘z Telegram ID
-   await setSetting('warehouse_group_id', '-100123456'); // ombor guruh ID
-   ```
-   Keyin saqlang.
-
-4. **Deploy**
-   ```bash
-   npx tgcloud login          # tokenni kiriting
+   npx tgcloud login
    npm run deploy
    ```
+3. Deploydan keyin chiqqan `https://appXXXX.tgcloud.ai` manzilini @BotFather → Mini App URL ga qo‘ying.
 
-5. **Mini App ni ulash**  
-   Deploydan keyin terminalda chiqadigan `https://appXXXX.tgcloud.ai` manzilini oling.  
-   @BotFather → bot → Mini App → URL ga shu manzilni qo‘ying.
+## Birinchi admin bo‘lish
 
-6. **Botni guruhlarga qo‘shing**  
-   - Bo‘lim guruhlari (buyurtma yoziladigan)
-   - Ombor guruhi
+Botga shaxsiy chatda `/start` yoki `/setup` yozing — siz avtomatik birinchi admin bo‘lasiz.
+
+Keyin Mini App ni oching (Admin Panel tugmasi) va **Sozlamalar** tabida:
+- Ombor guruh ID
+- Bo‘lim guruhlari ID (ixtiyoriy)
+- Filial nomi
+
+ni kiriting. Hammasi botning o‘zida.
 
 ## Kundalik ishlatish
 
 | Kim | Nima qiladi |
 |-----|-------------|
-| Bo‘lim | Guruhda: `kimchi 2 kg, sosiska 5` |
-| Admin | Mini App da “Ombor ga yuborish” |
+| Admin | `/yangi` yoki Mini App |
+| Bo‘lim | Guruhda: `kimchi 2 kg, sosiska 5, pizza 30 10` |
+| Admin | Mini App → buyurtma → **Ombor ga yuborish** |
 | Ishchi | Guruhda: `keldi: kimchi 2, sosiska 4` |
-| Admin | Mini App da “Kamchilikni yuborish” |
+| Admin | Mini App → **Kamchilikni yuborish** |
 
-## Muhim eslatmalar
+## Xususiyatlar
 
-- Birinchi deploydan keyin sozlamalarni Mini App orqali o‘zgartirish mumkin (Settings tab).
-- Admin ID ni o‘zgartirsangiz, yangi admin Mini App ga kira oladi.
-- Bot tokeni kodda yo‘q — Serverless o‘zi boshqaradi.
-- Production uchun yetarli darajada xavfsiz (admin tekshiruvi, verified initData).
+- Aqlli matn parser
+- Admin Mini App (iOS uslubi)
+- Barcha sozlamalar Mini App dan
+- Kamchilik hisoblash va yuborish
+- Excel dagi 35 ta mahsulot
+- Xavfsiz (verified initData + admin tekshiruvi)
+- Token kodda yo‘q
 
-**Beta.** Asosiy oqim to‘liq ishlaydi. Keyinroq Excel eksport, batafsil statistika qo‘shish mumkin.
+**Tayyor.** Endi to‘liq ishlaydi.
