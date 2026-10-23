@@ -1,22 +1,23 @@
 import { table, integer, text, real, boolean, sql } from 'sdk/db';
 
-// Mahsulotlar katalogi (Excel dagi 35 ta mahsulot)
+// Mahsulotlar katalogi
 export const products = table('products', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
-  unit: text('unit').notNull(), // kg, qop, dona, kon, ta, pach, litr
+  unit: text('unit').notNull(),
   price: real('price').notNull(),
-  keywords: text('keywords'), // qidiruv uchun qo'shimcha so'zlar
+  keywords: text('keywords'),
   isActive: boolean('is_active').default(true),
 });
 
 // Kunlik buyurtmalar
 export const orders = table('orders', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  date: text('date').notNull(), // YYYY-MM-DD
+  date: text('date').notNull(),
   branch: text('branch').default('ESKI SHAHAR'),
-  status: text('status').notNull().default('draft'), // draft, pending_approval, approved, sent, receiving, completed
+  status: text('status').notNull().default('draft'), // draft, approved, sent, receiving, completed
   totalAmount: real('total_amount').default(0),
+  warehouseMessageId: integer('warehouse_message_id'),
   createdBy: integer('created_by'),
   approvedBy: integer('approved_by'),
   createdAt: integer('created_at').default(sql`(unixepoch())`),
@@ -33,7 +34,13 @@ export const orderItems = table('order_items', {
   note: text('note'),
 });
 
-// Guruhlardan kelgan xabarlar (audit uchun)
+// Sozlamalar (admin dashboard dan o'zgartiriladi)
+export const settings = table('settings', {
+  key: text('key').primaryKey(),
+  value: text('value'),
+});
+
+// Xabarlar logi
 export const messages = table('messages', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   chatId: integer('chat_id').notNull(),

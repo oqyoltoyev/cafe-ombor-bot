@@ -1,40 +1,64 @@
-# Cafe Ombor Bot + Admin Mini App (Beta)
+# Cafe Ombor Bot — Production Beta
 
-Telegram Serverless asosidagi professional ombor buyurtma tizimi.
+Telegram Serverless + React Mini App (iOS uslubi) asosidagi to‘liq ombor buyurtma tizimi.
 
-## Imkoniyatlar
+## Asosiy imkoniyatlar
 
-- Guruhdagi matnni aqlli parser bilan buyurtmaga aylantirish
-- Admin uchun **iOS uslubidagi React Mini App** (Telegram ichida ochiladi)
-- Draft → Tasdiqlash → Ombor guruhiga yuborish oqimi
-- SQLite’da saqlash
-- Telegram Serverless hosting (Mini App + Endpoints)
+- Bo‘lim guruhlarida oddiy matn yozilsa bot mahsulotni aniqlaydi va draft buyurtmaga qo‘shadi
+- Admin Mini App orqali buyurtmani ko‘rib, ombor guruhiga yuboradi
+- Ishchilar “keldi: kimchi 2, sosiska 4” deb yozsa qabul qilinadi
+- Faqat kamchiliklar ombor guruhiga yuboriladi
+- Barcha sozlamalar (admin ID, guruh ID lar) Mini App dan o‘zgartiriladi
+- Excel dagi 35 ta mahsulot katalogi avtomatik
 
-## Mini App
+## Birinchi marta ishga tushirish (juda oson)
 
-Admin panel `https://app<APP_ID>.tgcloud.ai` da ochiladi.  
-BotFather da Mini App URL ni shu manzilga qo‘ying.
+1. **Bot yarating**  
+   @BotFather → `/newbot` → Serverless ni yoqing → CLI Access token oling.
 
-## O‘rnatish va Deploy
+2. **Loyihani oling**
+   ```bash
+   git clone https://github.com/oqyoltoyev/cafe-ombor-bot.git
+   cd cafe-ombor-bot
+   npm install
+   ```
 
-1. @BotFather da bot yarating va Serverless ni yoqing.
-2. CLI token oling.
-3. Ushbu repodan clone qiling yoki yuklab oling.
-4. Terminalda:
+3. **Birinchi sozlamalar** (terminalda)  
+   `tgcloud/lib/seed.js` faylini oching va quyidagilarni o‘zingizniki bilan almashtiring:
+   ```js
+   await setSetting('admin_ids', '123456789');           // o‘z Telegram ID
+   await setSetting('warehouse_group_id', '-100123456'); // ombor guruh ID
+   ```
+   Keyin saqlang.
 
-```bash
-npm install
-npx tgcloud login
-npm run deploy
-```
+4. **Deploy**
+   ```bash
+   npx tgcloud login          # tokenni kiriting
+   npm run deploy
+   ```
 
-5. `tgcloud/handlers/message.js` da ADMIN_ID ni o‘zgartiring.
-6. BotFather → Mini App sozlamalarida URL ni kiriting.
+5. **Mini App ni ulash**  
+   Deploydan keyin terminalda chiqadigan `https://appXXXX.tgcloud.ai` manzilini oling.  
+   @BotFather → bot → Mini App → URL ga shu manzilni qo‘ying.
 
-## Strukturasi
+6. **Botni guruhlarga qo‘shing**  
+   - Bo‘lim guruhlari (buyurtma yoziladigan)
+   - Ombor guruhi
 
-- `tgcloud/` — bot backend (handlers, endpoints, schema)
-- `src/` — React Mini App (iOS dizayn)
-- `dist/` — build natijasi (deploy qilinadi)
+## Kundalik ishlatish
 
-**Beta versiya.** Keyingi qadamlar: kamchilik hisoblash, to‘liq tasdiqlash oqimi, mahsulot katalogini boshqarish.
+| Kim | Nima qiladi |
+|-----|-------------|
+| Bo‘lim | Guruhda: `kimchi 2 kg, sosiska 5` |
+| Admin | Mini App da “Ombor ga yuborish” |
+| Ishchi | Guruhda: `keldi: kimchi 2, sosiska 4` |
+| Admin | Mini App da “Kamchilikni yuborish” |
+
+## Muhim eslatmalar
+
+- Birinchi deploydan keyin sozlamalarni Mini App orqali o‘zgartirish mumkin (Settings tab).
+- Admin ID ni o‘zgartirsangiz, yangi admin Mini App ga kira oladi.
+- Bot tokeni kodda yo‘q — Serverless o‘zi boshqaradi.
+- Production uchun yetarli darajada xavfsiz (admin tekshiruvi, verified initData).
+
+**Beta.** Asosiy oqim to‘liq ishlaydi. Keyinroq Excel eksport, batafsil statistika qo‘shish mumkin.
